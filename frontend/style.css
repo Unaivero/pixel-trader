@@ -1,0 +1,247 @@
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('../assets/font/PressStart2P-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  margin: 0;
+  background: black url('../assets/neon-grid-bg.png') center center / cover no-repeat;
+  font-family: 'Press Start 2P', monospace;
+  color: #0ff;
+  overflow: hidden;
+}
+
+canvas#neonGrid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.dashboard {
+  position: relative;
+  z-index: 10;
+  padding: 20px;
+  background-color: rgba(0,0,0,0.7);
+  max-width: 1200px;
+  margin: 40px auto;
+  border-radius: 12px;
+  box-shadow: 0 0 16px #0ff8;
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+}
+.main-panel {
+  flex: 1 1 600px;
+  display: flex;
+  flex-direction: column;
+}
+.info-panel {
+  min-width: 260px;
+  max-width: 340px;
+  background: rgba(0,0,0,0.85);
+  border: 2px solid #ff0cf7;
+  border-radius: 10px;
+  padding: 16px 12px 12px 12px;
+  box-shadow: 0 0 12px #ff0cf7aa;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: fit-content;
+}
+#companyInfo {
+  text-align: center;
+  margin-bottom: 8px;
+}
+#companyLogo img {
+  max-width: 60px;
+  max-height: 60px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: #111;
+  box-shadow: 0 0 8px #0ff8;
+}
+#companyName {
+  font-size: 1.1rem;
+  color: #ff0cf7;
+  margin-bottom: 2px;
+  font-weight: bold;
+  text-shadow: 0 0 8px #0ff, 0 0 16px #ff0cf7;
+}
+#companySector {
+  font-size: 0.9rem;
+  color: #0ff;
+  margin-bottom: 0;
+}
+#newsFeed {
+  margin-top: 8px;
+}
+.news-header {
+  font-size: 1rem;
+  color: #ff0cf7;
+  margin-bottom: 4px;
+  text-align: center;
+  text-shadow: 0 0 8px #0ff, 0 0 16px #ff0cf7;
+}
+#newsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+#newsList li {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #0ff5;
+}
+#newsList a {
+  color: #0ff;
+  text-decoration: none;
+  font-size: 0.97rem;
+  font-weight: bold;
+}
+#newsList a:hover {
+  color: #ff0cf7;
+  text-decoration: underline;
+}
+#newsList .news-date {
+  font-size: 0.85rem;
+  color: #ff0cf7;
+  margin-left: 4px;
+  font-style: italic;
+}
+
+@media (max-width: 900px) {
+  .dashboard { flex-direction: column; gap: 12px; max-width: 98vw; }
+  .info-panel { max-width: 98vw; min-width: 0; margin-top: 20px; }
+}
+
+.watchlist-panel {
+  min-width: 160px;
+  background: rgba(0,0,0,0.8);
+  border: 2px solid #0ff;
+  border-radius: 8px;
+  padding: 12px 8px 8px 8px;
+  box-shadow: 0 0 8px #0ff6;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: fit-content;
+}
+.watchlist-header {
+  font-size: 1rem;
+  color: #ff0cf7;
+  margin-bottom: 8px;
+  text-align: center;
+  text-shadow: 0 0 8px #0ff, 0 0 16px #ff0cf7;
+}
+#watchlist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  min-height: 40px;
+}
+#watchlist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111d;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #0ff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid #0ff6;
+}
+#watchlist li.selected {
+  background: #ff0cf7;
+  color: #fff;
+  border: 1px solid #fff;
+}
+#watchlist li button {
+  background: none;
+  border: none;
+  color: #f44;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: 8px;
+  font-family: inherit;
+}
+.watchlist-controls {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.controls {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  color: #ff0cf7;
+  text-shadow: 0 0 8px #0ff, 0 0 24px #ff0cf7;
+}
+
+.controls {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#symbolInput {
+  font-family: inherit;
+  font-size: 1rem;
+  width: 80px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  outline: none;
+  background: #222;
+  color: #0ff;
+  box-shadow: 0 0 4px #0ff8;
+}
+
+#fetchBtn {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  background: #0ff;
+  color: #111;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 0 4px #0ff8;
+  transition: background 0.2s;
+}
+#fetchBtn:hover {
+  background: #ff0cf7;
+  color: #fff;
+}
+
+#chart {
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .dashboard { max-width: 98vw; }
+  #chart svg { width: 98vw !important; }
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.2rem; }
+  #symbolInput, #fetchBtn { font-size: 0.8rem; }
+}

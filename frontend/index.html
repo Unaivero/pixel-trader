@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pixel Trader</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <canvas id="neonGrid"></canvas>
+  <div class="dashboard">
+    <h1>🟣 Pixel Trader</h1>
+    <div class="watchlist-panel">
+      <div class="watchlist-header">Watchlist</div>
+      <ul id="watchlist"></ul>
+      <div class="watchlist-controls">
+        <input id="symbolInput" type="text" value="AAPL" maxlength="10" />
+        <button id="addToWatchlistBtn">+</button>
+      </div>
+    </div>
+    <div class="main-panel">
+      <div class="controls">
+        <label for="periodSelect">Period:</label>
+        <select id="periodSelect">
+          <option value="1mo">1mo</option>
+          <option value="3mo">3mo</option>
+          <option value="6mo">6mo</option>
+          <option value="1y">1y</option>
+          <option value="5y">5y</option>
+          <option value="max">max</option>
+        </select>
+        <label for="intervalSelect">Interval:</label>
+        <select id="intervalSelect">
+          <option value="1d">1d</option>
+          <option value="1wk">1wk</option>
+          <option value="1mo">1mo</option>
+        </select>
+        <label style="margin-left:16px;">
+          <input type="checkbox" id="maToggle" checked />
+          Moving Avg
+        </label>
+        <select id="maType">
+          <option value="SMA">SMA</option>
+          <option value="EMA">EMA</option>
+        </select>
+        <input id="maPeriod" type="number" min="2" max="60" value="10" style="width:48px;" />
+        <button id="fetchBtn">Load</button>
+        <span id="loading" style="display:none">Loading...</span>
+        <span id="error" style="display:none;color:#f44"></span>
+      </div>
+      <div id="chart"></div>
+    </div>
+    <div class="info-panel">
+      <div id="companyInfo">
+        <div id="companyLogo"></div>
+        <div id="companyName"></div>
+        <div id="companySector"></div>
+      </div>
+      <div id="newsFeed">
+        <div class="news-header">News</div>
+        <ul id="newsList"></ul>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
