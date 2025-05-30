@@ -232,6 +232,53 @@ h1 {
   color: #fff;
 }
 
+/* Spinner styles */
+#loadingSpinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 16px;
+}
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #0ff;
+  border-top: 3px solid #ff0cf7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 8px #0ff, 0 0 16px #ff0cf7;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#loadingSpinner .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+#errorMessage {
+  color: #f44;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid #f44;
+  border-radius: 6px;
+  padding: 4px 12px;
+  margin-left: 16px;
+  font-size: 1rem;
+  font-family: inherit;
+  text-shadow: none;
+  box-shadow: 0 0 8px #f448;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 #chart {
   margin-top: 12px;
 }
@@ -244,4 +291,5 @@ h1 {
 @media (max-width: 600px) {
   h1 { font-size: 1.2rem; }
   #symbolInput, #fetchBtn { font-size: 0.8rem; }
+  #loadingSpinner, #errorMessage { margin-left: 4px; font-size: 0.8rem; }
 }
