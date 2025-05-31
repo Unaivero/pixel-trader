@@ -1,0 +1,17 @@
+2025-05-31 19:41:53,820 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-05-31 19:41:53,820 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-31 19:41:53,821 - werkzeug - INFO -  * Restarting with stat
+2025-05-31 19:41:54,128 - werkzeug - WARNING -  * Debugger is active!
+2025-05-31 19:41:54,136 - werkzeug - INFO -  * Debugger PIN: 127-918-369
+2025-05-31 19:42:17,994 - werkzeug - INFO - 127.0.0.1 - - [31/May/2025 19:42:17] "GET /api/health HTTP/1.1" 200 -
+2025-05-31 19:42:21,375 - utils - INFO - Fetching candles for AAPL, period: 5d, interval: 1d
+2025-05-31 19:42:21,451 - yfinance - ERROR - Failed to get ticker 'AAPL' reason: Expecting value: line 1 column 1 (char 0)
+2025-05-31 19:42:21,515 - yfinance - ERROR - 
+1 Failed download:
+2025-05-31 19:42:21,515 - yfinance - ERROR - ['AAPL']: Exception('%ticker%: No price data found, symbol may be delisted (period=5d)')
+2025-05-31 19:42:21,516 - werkzeug - INFO - 127.0.0.1 - - [31/May/2025 19:42:21] "[33mGET /api/candles/AAPL?period=5d&interval=1d HTTP/1.1[0m" 404 -
+2025-05-31 19:43:10,568 - werkzeug - INFO -  * Detected change in '/Users/josevergara/Documents/pixel-trader/demo_backend.py', reloading
+2025-05-31 19:43:10,610 - werkzeug - INFO -  * Restarting with stat
+2025-05-31 19:43:11,002 - werkzeug - WARNING -  * Debugger is active!
+2025-05-31 19:43:11,008 - werkzeug - INFO -  * Debugger PIN: 127-918-369

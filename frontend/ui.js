@@ -1,6 +1,7 @@
 // ui.js - Handles UI logic, watchlist, selectors, loading, error, and ties everything together
 import { fetchCandles, fetchCompanyInfo, fetchCompanyNews } from './api.js';
 import { renderChart } from './chart.js';
+import { calculatePerformanceMetrics, renderPerformancePanel } from './performance.js';
 
 const WATCHLIST_KEY = 'pixel_trader_watchlist';
 let watchlist = [];
@@ -8,6 +9,7 @@ let selectedSymbol = 'AAPL';
 let selectedPeriod = '1mo';
 let selectedInterval = '1d';
 let currentTheme = localStorage.getItem('pixel_trader_theme') || 'dark';
+let currentData = []; // Store current chart data for export
 
 function setTheme(theme) {
   currentTheme = theme;
@@ -26,6 +28,10 @@ function showError(msg) {
   if (msg) {
     errDiv.textContent = msg;
     errDiv.style.display = 'inline-block';
+    // Auto-hide error after 5 seconds
+    setTimeout(() => {
+      errDiv.style.display = 'none';
+    }, 5000);
   } else {
     errDiv.textContent = '';
     errDiv.style.display = 'none';
@@ -96,14 +102,23 @@ async function loadAndRender() {
   showLoading(true);
   try {
     const data = await fetchCandles(selectedSymbol, selectedPeriod, selectedInterval);
+    currentData = data; // Store for export
+    
     renderChart(data, {
       showMA: document.getElementById('maToggle').checked,
       maType: document.getElementById('maType').value,
       maPeriod: parseInt(document.getElementById('maPeriod').value) || 10,
       theme: currentTheme
     });
+    
+    // Calculate and display performance metrics
+    const metrics = calculatePerformanceMetrics(data);
+    renderPerformancePanel(metrics, selectedSymbol);
+    
+    showNotification(`${selectedSymbol} chart updated`, 'success');
   } catch (err) {
     showError(err.message || 'Failed to load chart data');
+    showNotification('Failed to load data', 'error');
   } finally {
     showLoading(false);
   }
@@ -166,26 +181,45 @@ window.onload = () => {
   renderWatchlist();
   setupSelectors();
   setupMAControls();
+  setupKeyboardShortcuts();
   setTheme(currentTheme);
   loadAndRender();
   updateCompanyPanel(selectedSymbol);
+  
   document.getElementById('addToWatchlistBtn').onclick = () => {
-    addToWatchlist(document.getElementById('symbolInput').value);
-    document.getElementById('symbolInput').value = '';
+    const input = document.getElementById('symbolInput');
+    addToWatchlist(input.value);
+    input.value = '';
+    input.focus(); // Keep focus for easy multiple additions
     renderWatchlist();
     loadAndRender();
     updateCompanyPanel(selectedSymbol);
   };
+  
+  // Add Enter key support for symbol input
+  document.getElementById('symbolInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('addToWatchlistBtn').click();
+    }
+  });
+  
   document.getElementById('fetchBtn').onclick = () => {
     loadAndRender();
     updateCompanyPanel(selectedSymbol);
   };
+  
+  // Export functionality
+  document.getElementById('exportBtn').onclick = () => {
+    exportData();
+  };
+  
   // Theme toggle button
   let themeBtn = document.getElementById('themeToggleBtn');
   if (!themeBtn) {
     themeBtn = document.createElement('button');
     themeBtn.id = 'themeToggleBtn';
-    themeBtn.textContent = 'Toggle Theme';
+    themeBtn.textContent = '🎨 Theme';
     themeBtn.style.marginLeft = '16px';
     themeBtn.onclick = () => {
       toggleTheme();
@@ -193,8 +227,115 @@ window.onload = () => {
     };
     document.querySelector('.controls').appendChild(themeBtn);
   }
+  
   // Keyboard accessibility for chart
   const chartDiv = document.getElementById('chart');
   chartDiv.setAttribute('tabindex', '0');
   chartDiv.setAttribute('aria-label', 'Candlestick chart area');
+  chartDiv.setAttribute('role', 'img');
 };
+
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Only trigger if not typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    
+    switch(e.key.toLowerCase()) {
+      case 'r':
+        e.preventDefault();
+        loadAndRender();
+        showNotification('Chart refreshed');
+        break;
+      case 't':
+        e.preventDefault();
+        toggleTheme();
+        break;
+      case '/':
+        e.preventDefault();
+        document.getElementById('symbolInput').focus();
+        break;
+      case 'escape':
+        e.preventDefault();
+        showError(''); // Clear errors
+        break;
+    }
+  });
+}
+
+function showNotification(message, type = 'info') {
+  // Create notification element if it doesn't exist
+  let notification = document.getElementById('notification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      color: white;
+      font-family: inherit;
+      font-size: 0.9rem;
+      z-index: 1000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    `;
+    document.body.appendChild(notification);
+  }
+  
+  // Set style based on type
+  const styles = {
+    info: 'background: #0ff; color: #111;',
+    success: 'background: #0f0; color: #111;',
+    error: 'background: #f44; color: #fff;'
+  };
+  
+  notification.style.cssText += styles[type] || styles.info;
+  notification.textContent = message;
+  notification.style.transform = 'translateX(0)';
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+  }, 3000);
+}
+
+function exportData() {
+  if (!currentData || currentData.length === 0) {
+    showNotification('No data to export', 'error');
+    return;
+  }
+  
+  try {
+    // Create CSV content
+    const headers = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'];
+    const csvContent = [
+      headers.join(','),
+      ...currentData.map(d => [
+        d.date || d.time,
+        d.open,
+        d.high, 
+        d.low,
+        d.close,
+        d.volume || 0
+      ].join(','))
+    ].join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedSymbol}_${selectedPeriod}_${selectedInterval}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showNotification('Data exported successfully', 'success');
+  } catch (error) {
+    showNotification('Export failed', 'error');
+    console.error('Export error:', error);
+  }
+}

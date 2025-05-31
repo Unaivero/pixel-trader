@@ -33,6 +33,11 @@
         </select>
         <label for="intervalSelect">Interval:</label>
         <select id="intervalSelect">
+          <option value="1m">1m</option>
+          <option value="5m">5m</option>
+          <option value="15m">15m</option>
+          <option value="30m">30m</option>
+          <option value="1h">1h</option>
           <option value="1d">1d</option>
           <option value="1wk">1wk</option>
           <option value="1mo">1mo</option>
@@ -47,6 +52,7 @@
         </select>
         <input id="maPeriod" type="number" min="2" max="60" value="10" style="width:48px;" />
         <button id="fetchBtn">Load</button>
+        <button id="exportBtn" style="margin-left: 8px;">📊 Export</button>
         <div id="loadingSpinner" aria-live="polite" style="display:none">
           <div class="spinner"></div>
           <span class="visually-hidden">Loading...</span>
@@ -70,5 +76,42 @@
   <script type="module" src="ui.js"></script>
   <script type="module" src="api.js"></script>
   <script type="module" src="chart.js"></script>
+  <script type="module" src="performance.js"></script>
+  <script>
+    // Initialize neon grid animation
+    function animateNeonGrid() {
+      const canvas = document.getElementById('neonGrid');
+      const ctx = canvas.getContext('2d');
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      let t = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const gridSize = 40;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+          for (let y = 0; y < canvas.height; y += gridSize) {
+            ctx.strokeStyle = `rgba(0,255,255,${0.08 + 0.08*Math.sin(t + (x+y)/200)})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+          }
+        }
+        t += 0.03;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+    
+    // Start animation when page loads
+    document.addEventListener('DOMContentLoaded', animateNeonGrid);
+  </script>
 </body>
 </html>

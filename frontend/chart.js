@@ -36,11 +36,21 @@ export function calcEMA(data, period) {
 // --- Chart Rendering ---
 export function renderChart(data, options = {}) {
   d3.select('#chart').selectAll('*').remove();
-  const width = 800, height = 400, margin = {left: 60, right: 20, top: 20, bottom: 40};
+  
+  // Responsive sizing
+  const container = document.getElementById('chart');
+  const containerWidth = container.offsetWidth || 800;
+  const width = Math.min(containerWidth, 1000);
+  const height = Math.max(500, width * 0.6);
+  const margin = {left: 60, right: 20, top: 20, bottom: 80};
+  const priceHeight = height - 150;
+  const volumeHeight = 80;
+  
   const svg = d3.select('#chart')
     .append('svg')
     .attr('width', width)
     .attr('height', height);
+    
   if (!data || data.length === 0) {
     svg.append('text')
       .attr('x', width / 2)
@@ -51,32 +61,77 @@ export function renderChart(data, options = {}) {
       .text('No data');
     return;
   }
-  // Parse time
+  
+  // Parse time and ensure data quality
   const parseTime = d3.timeParse('%Y-%m-%d');
-  data.forEach(d => { d.time = parseTime(d.date) || new Date(d.date); });
-  // Scales
+  data.forEach(d => { 
+    d.time = parseTime(d.date || d.time);
+    if (!d.time) d.time = new Date(d.date || d.time);
+    // Ensure all values are numbers
+    d.open = +d.open;
+    d.high = +d.high;
+    d.low = +d.low;
+    d.close = +d.close;
+    d.volume = +d.volume || 0;
+  });
+  
+  // Scales for price chart
   const x = d3.scaleBand()
     .domain(data.map(d => d.time))
     .range([margin.left, width - margin.right])
     .padding(0.3);
+    
   const y = d3.scaleLinear()
     .domain([
       d3.min(data, d => d.low),
       d3.max(data, d => d.high)
     ]).nice()
-    .range([height - margin.bottom, margin.top]);
+    .range([priceHeight - margin.bottom, margin.top]);
+    
+  // Volume scale
+  const volumeY = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.volume)])
+    .range([height - 20, priceHeight + 20]);
+  
+  // Create price chart group
+  const priceGroup = svg.append('g').attr('class', 'price-chart');
+  
+  // Create volume chart group  
+  const volumeGroup = svg.append('g').attr('class', 'volume-chart');
   // Axes
-  svg.append('g')
-    .attr('transform', `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).tickFormat(d3.timeFormat('%b %d')).tickValues(x.domain().filter((d, i) => !(i % Math.ceil(data.length / 10)))));
-  svg.append('g')
+  priceGroup.append('g')
+    .attr('transform', `translate(0,${priceHeight - margin.bottom})`)
+    .call(d3.axisBottom(x).tickFormat(d3.timeFormat('%b %d')).tickValues(x.domain().filter((d, i) => !(i % Math.ceil(data.length / 10)))))
+    .attr('color', '#0ff');
+    
+  priceGroup.append('g')
     .attr('transform', `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y));
-  // Candles
-  svg.append('g')
-    .selectAll('rect')
+    .call(d3.axisLeft(y).tickFormat(d3.format('$.2f')))
+    .attr('color', '#0ff');
+    
+  // Volume axis
+  volumeGroup.append('g')
+    .attr('transform', `translate(${margin.left},0)`)
+    .call(d3.axisLeft(volumeY).ticks(3).tickFormat(d3.format('.2s')))
+    .attr('color', '#666');
+  
+  // Volume bars
+  volumeGroup.selectAll('.volume-bar')
     .data(data)
     .join('rect')
+    .attr('class', 'volume-bar')
+    .attr('x', d => x(d.time))
+    .attr('y', d => volumeY(d.volume))
+    .attr('width', x.bandwidth())
+    .attr('height', d => volumeY(0) - volumeY(d.volume))
+    .attr('fill', d => d.close > d.open ? '#0ff4' : '#ff0cf74')
+    .attr('opacity', 0.6);
+  
+  // Candlestick bodies
+  priceGroup.selectAll('.candle-body')
+    .data(data)
+    .join('rect')
+    .attr('class', 'candle-body')
     .attr('x', d => x(d.time))
     .attr('y', d => y(Math.max(d.open, d.close)))
     .attr('width', x.bandwidth())
@@ -85,14 +140,15 @@ export function renderChart(data, options = {}) {
     .attr('stroke', d => d.close > d.open ? '#0ff' : '#ff0cf7')
     .attr('opacity', 0.8)
     .on('mousemove', function(event, d) {
-      showTooltip(event, d, x, y);
+      showTooltip(event, d);
     })
     .on('mouseleave', hideTooltip);
-  // Wicks
-  svg.append('g')
-    .selectAll('line')
+  
+  // Candlestick wicks
+  priceGroup.selectAll('.candle-wick')
     .data(data)
     .join('line')
+    .attr('class', 'candle-wick')
     .attr('x1', d => x(d.time) + x.bandwidth() / 2)
     .attr('x2', d => x(d.time) + x.bandwidth() / 2)
     .attr('y1', d => y(d.high))
@@ -142,10 +198,21 @@ export function renderChart(data, options = {}) {
       .style('display', 'none');
   }
   function showTooltip(event, d, x, y) {
+    const formatDate = d3.timeFormat("%b %d, %Y");
+    const formatCurrency = d3.format("$.2f");
+    const formatVolume = d3.format(",");
+    
     tooltip.style('display', 'block')
       .style('left', (event.offsetX + 25) + 'px')
       .style('top', (event.offsetY - 20) + 'px')
-      .html(`<b>${d.date}</b><br>Open: ${d.open}<br>Close: ${d.close}<br>High: ${d.high}<br>Low: ${d.low}<br>Volume: ${d.volume}`);
+      .html(`
+        <b>${formatDate(d.time)}</b><br>
+        Open: ${formatCurrency(d.open)}<br>
+        Close: ${formatCurrency(d.close)}<br>
+        High: ${formatCurrency(d.high)}<br>
+        Low: ${formatCurrency(d.low)}<br>
+        ${d.volume ? `Volume: ${formatVolume(d.volume)}` : ''}
+      `);
   }
   function hideTooltip() {
     tooltip.style('display', 'none');
